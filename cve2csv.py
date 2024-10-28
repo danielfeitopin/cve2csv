@@ -124,7 +124,7 @@ def main(keyword: str, output: str = CSV_FILE_NAME):
 
         if n_results > 0:
             df: DataFrame = extract_table_data(soup)
-            df.to_csv(CSV_FILE_NAME, index=False)
+            df.to_csv(output, index=False)
 
 
 if __name__ == '__main__':
