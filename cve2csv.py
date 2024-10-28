@@ -100,12 +100,13 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
         return pd.DataFrame(rows[1:], columns=rows[0])
 
 
-if __name__ == '__main__':
+def main():
+    """Main function to fetch CVE data and save to CSV based on a keyword."""
 
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
     keyword: str = '%20'.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
     print(f'Getting results from {URL}{keyword}')
-    
+
     try:
         response: Response = requests.get(URL + keyword)
         response.raise_for_status()
@@ -121,3 +122,7 @@ if __name__ == '__main__':
         if n_results > 0:
             df: DataFrame = extract_table_data(soup)
             df.to_csv(CSV_FILE_NAME, index=False)
+
+
+if __name__ == '__main__':
+    main()
