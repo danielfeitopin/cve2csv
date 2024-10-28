@@ -33,6 +33,7 @@ This module requires the following libraries:
 
 """
 
+import logging
 import pandas as pd
 import requests
 import sys
@@ -106,19 +107,19 @@ def main():
 
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
     keyword: str = '%20'.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
-    print(f'Getting results from {URL}{keyword}')
+    logging.info(f'Getting results from {URL}{keyword}')
 
     try:
         response: Response = requests.get(URL + keyword)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data: {e}")
+        logging.error(f"Error fetching data: {e}")
         sys.exit(1)
 
     if response.status_code == 200:  # Ok
         soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
         n_results: int = get_results_number(soup)
-        print(f"There are {n_results} CVE Records that match your search.")
+        logging.info(f"There are {n_results} Records that match your search.")
 
         if n_results > 0:
             df: DataFrame = extract_table_data(soup)
@@ -126,4 +127,5 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(message)s', level=logging.INFO)
     main()
