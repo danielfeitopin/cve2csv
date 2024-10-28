@@ -1,3 +1,37 @@
+"""
+cve2csv.py
+
+This module extracts CVE vulnerability information from the MITRE CVE database 
+and saves the results to a CSV file. It performs web scraping to fetch CVE records 
+based on keywords provided via the command line and converts the results into a 
+pandas `DataFrame` for easy processing.
+
+Functions:
+----------
+- get_results_number(soup: BeautifulSoup) -> int:
+    Extracts and returns the number of vulnerability search results.
+
+- extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
+    Extracts CVE table data from the HTML page and converts it into a pandas `DataFrame`.
+
+Usage:
+------
+Run this module from the command line with keywords for the search, for example:
+
+    python cve2csv.py keyword
+
+This generates a file `cve.csv` in the current directory containing the CVE search 
+results in CSV format.
+
+Dependencies:
+-------------
+This module requires the following libraries:
+- pandas
+- requests
+- BeautifulSoup (from bs4)
+
+"""
+
 import pandas as pd
 import requests
 from pandas import DataFrame
