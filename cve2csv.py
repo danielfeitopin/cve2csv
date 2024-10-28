@@ -105,7 +105,13 @@ if __name__ == '__main__':
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
     keyword: str = '%20'.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
     print(f'Getting results from {URL}{keyword}')
-    response: Response = requests.get(URL + keyword)
+    
+    try:
+        response: Response = requests.get(URL + keyword)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+        sys.exit(1)
 
     if response.status_code == 200:  # Ok
         soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
@@ -115,6 +121,3 @@ if __name__ == '__main__':
         if n_results > 0:
             df: DataFrame = extract_table_data(soup)
             df.to_csv(CSV_FILE_NAME, index=False)
-
-    else:
-        print(f"Error al obtener la página: {response.status_code}")
