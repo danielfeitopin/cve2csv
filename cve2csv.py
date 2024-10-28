@@ -33,6 +33,7 @@ This module requires the following libraries:
 
 """
 
+import argparse
 import logging
 import pandas as pd
 import requests
@@ -102,7 +103,7 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
         return pd.DataFrame(rows[1:], columns=rows[0])
 
 
-def main():
+def main(keyword: str, output: str = CSV_FILE_NAME):
     """Main function to fetch CVE data and save to CSV."""
 
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
@@ -127,5 +128,19 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-    main()
+
+    # Parser
+    parser = argparse.ArgumentParser(
+        description="Fetch CVE data and save to CSV.")
+    parser.add_argument("keyword", help="Search keyword for CVE entries.")
+    parser.add_argument("-o", "--output", default=CSV_FILE_NAME,
+                        help="Output CSV file name.")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Increase output verbosity.")
+    args = parser.parse_args()
+
+    if args.verbose:
+        # Logging
+        logging.basicConfig(format='%(message)s', level=logging.INFO)
+
+    main(args.keyword, args.output)
