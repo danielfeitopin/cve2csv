@@ -34,10 +34,10 @@ This module requires the following libraries:
 
 import pandas as pd
 import requests
+import sys
 from pandas import DataFrame
 from requests import Response
 from bs4 import BeautifulSoup
-from sys import argv
 
 CSV_FILE_NAME: str = 'cve.csv'
 
@@ -103,7 +103,7 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
 if __name__ == '__main__':
 
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
-    keyword: str = '%20'.join(argv[1:]) if len(argv) > 1 else ''
+    keyword: str = '%20'.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
     print(f'Getting results from {URL}{keyword}')
     response: Response = requests.get(URL + keyword)
 
