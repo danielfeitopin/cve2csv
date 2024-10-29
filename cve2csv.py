@@ -107,7 +107,6 @@ def main(keyword: str, output: str = CSV_FILE_NAME):
     """Main function to fetch CVE data and save to CSV."""
 
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
-    keyword: str = '%20'.join(sys.argv[1:]) if len(sys.argv) > 1 else ''
     logging.info(f'Getting results from {URL}{keyword}')
 
     try:
