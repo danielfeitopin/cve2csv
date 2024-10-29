@@ -142,17 +142,17 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
 
         rows: list = [[ele.text.strip() for ele in row.find_all(['th', 'td'])]
                       for row in table.find_all('tr')]
-    
+
         if not rows or len(rows) < 2:
             logging.warning("No valid data found in table.")
             return None
-        
+
         if len(rows[0]) != len(rows[1:][0]):
             logging.error("Mismatch between header and row columns.")
             return None
-        
+
         return pd.DataFrame(rows[1:], columns=rows[0])
-    
+
     logging.warning("No table found with id 'TableWithRules'.")
     return None
 
@@ -226,7 +226,7 @@ def configure_logging(verbosity: int, quiet: bool):
 
 def main(keyword, output, delimiter, encoding):
     """Main function to fetch CVE data and save to CSV."""
-    
+
     logging.info(f'Getting results from {URL}{keyword}')
     soup: BeautifulSoup = BeautifulSoup(fetch_cve_data(keyword), 'html.parser')
 
