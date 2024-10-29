@@ -33,15 +33,16 @@ This module requires the following libraries:
 
 """
 
-import argparse
 import logging
 import pandas as pd
 import requests
 import sys
+from argparse import ArgumentParser
 from pandas import DataFrame
 from requests import Response
 from bs4 import BeautifulSoup
 
+URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
 CSV_FILE_NAME: str = 'cve.csv'
 
 
@@ -79,7 +80,6 @@ def fetch_cve_data(keyword: str) -> str:
     True
     """
 
-    URL = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
     try:
         response: Response = requests.get(URL + keyword)
         response.raise_for_status()
@@ -157,35 +157,63 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
     return None
 
 
-def main(keyword: str, output: str = CSV_FILE_NAME):
+def save_to_csv(df: DataFrame, output_file: str, delimiter: str = ',',
+                encoding: str = 'utf-8'):
+    """Saves DataFrame to a CSV file with the specified delimiter and encoding.
+    """
+    df.to_csv(output_file, index=False, sep=delimiter, encoding=encoding)
+    logging.info(f"Data saved to '{output_file}' with delimiter '{delimiter}' "
+                 + f"and encoding '{encoding}'.")
+
+
+def create_parser() -> ArgumentParser:
+    """
+    Creates and configures the argument parser for the script.
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        Configured ArgumentParser with expected arguments for the script.
+    """
+
+    parser = ArgumentParser(
+        description="Fetch CVE data from MITRE and save to CSV.")
+    parser.add_argument("keyword", help="Search keyword for CVE entries.")
+    parser.add_argument("-o", "--output", default=CSV_FILE_NAME,
+                        help="Output CSV file name.")
+    parser.add_argument("-d", "--delimiter", default=',',
+                        help="CSV delimiter.")
+    parser.add_argument("-e", "--encoding",
+                        default='utf-8', help="CSV encoding.")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Increase output verbosity.")
+    return parser
+
+
+def main(keyword, output, delimiter, encoding):
     """Main function to fetch CVE data and save to CSV."""
-
-    URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
+    
     logging.info(f'Getting results from {URL}{keyword}')
-
     soup: BeautifulSoup = BeautifulSoup(fetch_cve_data(keyword), 'html.parser')
     n_results: int = get_results_number(soup)
     logging.info(f"There are {n_results} Records that match your search.")
-
+        
     if n_results > 0:
-        df: DataFrame = extract_table_data(soup)
-        df.to_csv(output, index=False)
+        if (df := extract_table_data(soup)) is not None:
+            save_to_csv(df, output, delimiter=delimiter, encoding=encoding)
+        else:
+            logging.warning("No valid data to save; exiting.")
+    else:
+        logging.info("No CVE records found for the given keyword.")
 
 
 if __name__ == '__main__':
 
-    # Parser
-    parser = argparse.ArgumentParser(
-        description="Fetch CVE data and save to CSV.")
-    parser.add_argument("keyword", help="Search keyword for CVE entries.")
-    parser.add_argument("-o", "--output", default=CSV_FILE_NAME,
-                        help="Output CSV file name.")
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Increase output verbosity.")
+    parser = create_parser()
     args = parser.parse_args()
 
     if args.verbose:
         # Logging
         logging.basicConfig(format='%(message)s', level=logging.INFO)
 
-    main(args.keyword, args.output)
+    main(args.keyword, args.output, args.delimiter, args.encoding)
