@@ -2,7 +2,7 @@
 
 <div align="center">
 
-***A Python module to to fetch CVE data and save it to CSV.***
+***A Python module to fetch CVE data and save it to CSV.***
 
 [![Python](https://img.shields.io/badge/Python_3-black?logo=python&logoColor=white&labelColor=grey&color=%233776AB)](<https://www.python.org/> "Python")
 [![Pandas](https://img.shields.io/badge/Pandas-black?logo=pandas&logoColor=white&labelColor=grey&color=%23150458)](<https://pandas.pydata.org/> "Pandas")
