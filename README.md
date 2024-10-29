@@ -48,17 +48,20 @@ python cve2csv.py -h
 ```
 
 ```
-usage: cve2csv.py [-h] [-o OUTPUT] [-v] keyword
+usage: cve2csv.py [-h] [-o OUTPUT] [-d DELIMITER] [-e ENCODING] [-v | -q] keyword
 
-Fetch CVE data and save to CSV.
+Fetch CVE data from MITRE and save to CSV.
 
 positional arguments:
-  keyword                     Search keyword for CVE entries.
+  keyword                               Search keyword for CVE entries.
 
 options:
-  -h, --help                  show this help message and exit
-  -o OUTPUT, --output OUTPUT  Output CSV file name.
-  -v, --verbose               Increase output verbosity.
+  -h, --help                            show this help message and exit
+  -o OUTPUT, --output OUTPUT            Output CSV file name.
+  -d DELIMITER, --delimiter DELIMITER   CSV delimiter.
+  -e ENCODING, --encoding ENCODING      CSV encoding.
+  -v, --verbose                         Increase output verbosity.Use -v, -vv, or -vvv for more verbosity.
+  -q, --quiet                           Suppress all output except errors.
 ```
 
 ## Contributing
