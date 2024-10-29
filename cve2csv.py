@@ -45,6 +45,50 @@ from bs4 import BeautifulSoup
 CSV_FILE_NAME: str = 'cve.csv'
 
 
+def fetch_cve_data(keyword: str) -> str:
+    """
+    Fetches the raw HTML content from the MITRE CVE database for a given search 
+    keyword.
+
+    This function builds a URL using the specified keyword to search the MITRE 
+    CVE database and sends an HTTP GET request to retrieve the HTML content. If
+    the request is successful, it returns the raw HTML as a string. In case of a 
+    request error (e.g., network issues, invalid URL), an error message is 
+    logged, and the program exits.
+
+    Parameters
+    ----------
+    keyword : str
+        The search keyword used to filter CVE records in the MITRE CVE database.
+
+    Returns
+    -------
+    str
+        The raw HTML content of the CVE search results page as a string.
+
+    Raises
+    ------
+    SystemExit
+        If the HTTP request fails, the function logs the error and exits the 
+        program.
+
+    Example
+    -------
+    >>> html_content = fetch_cve_data("buffer overflow")
+    >>> isinstance(html_content, str)
+    True
+    """
+
+    URL = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
+    try:
+        response: Response = requests.get(URL + keyword)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching data: {e}")
+        sys.exit(1)
+
+
 def get_results_number(soup: BeautifulSoup) -> int:
     """Get the rumber of results from the response.
 
@@ -109,21 +153,13 @@ def main(keyword: str, output: str = CSV_FILE_NAME):
     URL: str = "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="
     logging.info(f'Getting results from {URL}{keyword}')
 
-    try:
-        response: Response = requests.get(URL + keyword)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching data: {e}")
-        sys.exit(1)
+    soup: BeautifulSoup = BeautifulSoup(fetch_cve_data(keyword), 'html.parser')
+    n_results: int = get_results_number(soup)
+    logging.info(f"There are {n_results} Records that match your search.")
 
-    if response.status_code == 200:  # Ok
-        soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
-        n_results: int = get_results_number(soup)
-        logging.info(f"There are {n_results} Records that match your search.")
-
-        if n_results > 0:
-            df: DataFrame = extract_table_data(soup)
-            df.to_csv(output, index=False)
+    if n_results > 0:
+        df: DataFrame = extract_table_data(soup)
+        df.to_csv(output, index=False)
 
 
 if __name__ == '__main__':
