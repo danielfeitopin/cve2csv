@@ -185,9 +185,43 @@ def create_parser() -> ArgumentParser:
                         help="CSV delimiter.")
     parser.add_argument("-e", "--encoding",
                         default='utf-8', help="CSV encoding.")
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Increase output verbosity.")
+
+    # Verbose and quiet options
+    verbosity_group = parser.add_mutually_exclusive_group()
+    verbosity_group.add_argument("-v", "--verbose", action="count", default=0,
+                                 help="Increase output verbosity."
+                                 + "Use -v, -vv, or -vvv for more verbosity.")
+    verbosity_group.add_argument("-q", "--quiet", action="store_true",
+                                 help="Suppress all output except errors.")
+
     return parser
+
+
+def configure_logging(verbosity: int, quiet: bool):
+    """
+    Configures logging level based on verbosity and quiet flags.
+
+    Parameters
+    ----------
+    verbosity : int
+        Verbosity level (0 for default, increases with additional 'v').
+    quiet : bool
+        If True, suppresses all logging output except errors.
+    """
+    if quiet:
+        log_level = logging.CRITICAL
+    else:
+        # Mapping verbosity levels to logging levels
+        log_level = {
+            0: logging.WARNING,  # Default
+            1: logging.INFO,     # -v
+            2: logging.DEBUG,    # -vv
+        }.get(verbosity, logging.DEBUG)  # -vvv or more defaults to DEBUG
+
+    logging.basicConfig(
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        level=log_level
+    )
 
 
 def main(keyword, output, delimiter, encoding):
@@ -195,25 +229,19 @@ def main(keyword, output, delimiter, encoding):
     
     logging.info(f'Getting results from {URL}{keyword}')
     soup: BeautifulSoup = BeautifulSoup(fetch_cve_data(keyword), 'html.parser')
-    n_results: int = get_results_number(soup)
-    logging.info(f"There are {n_results} Records that match your search.")
-        
-    if n_results > 0:
+
+    if n_results := get_results_number(soup):
+        logging.info(f"There are {n_results} Records that match your search.")
         if (df := extract_table_data(soup)) is not None:
             save_to_csv(df, output, delimiter=delimiter, encoding=encoding)
         else:
             logging.warning("No valid data to save; exiting.")
     else:
-        logging.info("No CVE records found for the given keyword.")
+        logging.warning("No CVE records found for the given keyword.")
 
 
 if __name__ == '__main__':
 
-    parser = create_parser()
-    args = parser.parse_args()
-
-    if args.verbose:
-        # Logging
-        logging.basicConfig(format='%(message)s', level=logging.INFO)
-
+    args = create_parser().parse_args()
+    configure_logging(args.verbose, args.quiet)
     main(args.keyword, args.output, args.delimiter, args.encoding)
