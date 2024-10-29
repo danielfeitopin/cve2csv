@@ -138,13 +138,23 @@ def extract_table_data(soup: BeautifulSoup) -> DataFrame | None:
             table is found, otherwise `None`.
     """
 
-    if (div := soup.find(id='TableWithRules'))\
-            and (table := div.find('table')):
+    if (div := soup.find(id='TableWithRules')) and (table := div.find('table')):
 
         rows: list = [[ele.text.strip() for ele in row.find_all(['th', 'td'])]
                       for row in table.find_all('tr')]
-
+    
+        if not rows or len(rows) < 2:
+            logging.warning("No valid data found in table.")
+            return None
+        
+        if len(rows[0]) != len(rows[1:][0]):
+            logging.error("Mismatch between header and row columns.")
+            return None
+        
         return pd.DataFrame(rows[1:], columns=rows[0])
+    
+    logging.warning("No table found with id 'TableWithRules'.")
+    return None
 
 
 def main(keyword: str, output: str = CSV_FILE_NAME):
